@@ -28,8 +28,8 @@ const DashboardPage = () => {
       
       <main className="container mx-auto px-4 sm:px-6 pt-24 pb-16 page-transition">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Welcome to your analytics overview</p>
+          <h1 className="text-3xl font-bold">Lead Management</h1>
+          <p className="text-muted-foreground mt-1">Overview of submitted forms and plans</p>
         </div>
         
         <Dashboard />
