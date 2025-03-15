@@ -29,7 +29,7 @@ const UserDetailPage = () => {
       <main className="container mx-auto px-4 sm:px-6 pt-24 pb-16 page-transition">
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Lead Details</h1>
-          <p className="text-muted-foreground mt-1">View detailed information about this lead</p>
+          <p className="text-muted-foreground mt-1">View detailed information about this lead and their insurance plans</p>
         </div>
         <UserDetails />
       </main>

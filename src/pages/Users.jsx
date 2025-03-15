@@ -29,7 +29,7 @@ const Users = () => {
       <main className="container mx-auto px-4 sm:px-6 pt-24 pb-16 page-transition">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Lead Management</h1>
-          <p className="text-muted-foreground mt-1">All submitted forms and plans</p>
+          <p className="text-muted-foreground mt-1">All submitted forms and insurance plans</p>
         </div>
         
         <UserTable />
