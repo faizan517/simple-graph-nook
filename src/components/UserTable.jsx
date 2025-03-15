@@ -87,25 +87,20 @@ const UserTable = () => {
       <div className="min-h-[500px] flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="h-12 w-12 rounded-full border-4 border-primary/30 border-t-primary animate-spin"></div>
-          <p className="mt-4 text-muted-foreground">Loading users...</p>
+          <p className="mt-4 text-muted-foreground">Loading leads...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="glass-card rounded-xl shadow-sm animate-fade-in overflow-hidden">
+    <div className="rounded-xl shadow-sm animate-fade-in overflow-hidden border border-border">
       {/* Header with search */}
-      <div className="p-6 border-b border-border">
+      <div className="p-4 border-b border-border bg-muted/30">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-center">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary mr-4">
-              <Users className="h-5 w-5" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold">Users</h2>
-              <p className="text-muted-foreground text-sm">{filteredUsers.length} total users</p>
-            </div>
+          <div>
+            <h2 className="text-lg font-semibold">Leads</h2>
+            <p className="text-muted-foreground text-sm">{filteredUsers.length} total leads</p>
           </div>
           
           <div className="relative w-full md:w-64">
@@ -115,7 +110,7 @@ const UserTable = () => {
             <input
               type="text"
               className="w-full py-2 pl-10 pr-4 rounded-lg border border-border bg-background/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm"
-              placeholder="Search users..."
+              placeholder="Search leads..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -128,7 +123,7 @@ const UserTable = () => {
         <table className="w-full">
           <thead>
             <tr className="border-b border-border bg-muted/30">
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <button
                   className="flex items-center focus:outline-none"
                   onClick={() => requestSort('name')}
@@ -137,7 +132,7 @@ const UserTable = () => {
                   {getSortIcon('name')}
                 </button>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <button
                   className="flex items-center focus:outline-none"
                   onClick={() => requestSort('email')}
@@ -146,16 +141,7 @@ const UserTable = () => {
                   {getSortIcon('email')}
                 </button>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                <button
-                  className="flex items-center focus:outline-none"
-                  onClick={() => requestSort('role')}
-                >
-                  <span>Role</span>
-                  {getSortIcon('role')}
-                </button>
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <button
                   className="flex items-center focus:outline-none"
                   onClick={() => requestSort('department')}
@@ -164,7 +150,7 @@ const UserTable = () => {
                   {getSortIcon('department')}
                 </button>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <button
                   className="flex items-center focus:outline-none"
                   onClick={() => requestSort('status')}
@@ -181,25 +167,12 @@ const UserTable = () => {
                 <tr 
                   key={user.id}
                   onClick={() => handleUserClick(user.id)}
-                  className="table-row-hover"
+                  className="hover:bg-muted/50 cursor-pointer"
                 >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      <img
-                        src={user.avatar}
-                        alt={user.name}
-                        className="h-8 w-8 rounded-full mr-3 object-cover border border-border"
-                      />
-                      <div>
-                        <div className="font-medium">{user.name}</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">ID: {user.id}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm">{user.email}</td>
-                  <td className="px-6 py-4 text-sm">{user.role}</td>
-                  <td className="px-6 py-4 text-sm">{user.department}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-3 text-sm">{user.name}</td>
+                  <td className="px-4 py-3 text-sm">{user.email}</td>
+                  <td className="px-4 py-3 text-sm">{user.department}</td>
+                  <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       user.status === 'Active'
                         ? 'bg-green-100 text-green-800'
@@ -214,10 +187,10 @@ const UserTable = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="px-6 py-16 text-center">
+                <td colSpan="4" className="px-4 py-10 text-center">
                   <div className="flex flex-col items-center">
-                    <Users className="h-10 w-10 text-muted-foreground/40 mb-4" />
-                    <p className="text-muted-foreground font-medium">No users found</p>
+                    <Users className="h-8 w-8 text-muted-foreground/40 mb-2" />
+                    <p className="text-muted-foreground">No leads found</p>
                     <p className="text-sm text-muted-foreground mt-1">Try adjusting your search.</p>
                   </div>
                 </td>
@@ -228,9 +201,9 @@ const UserTable = () => {
       </div>
       
       {/* Footer */}
-      <div className="px-6 py-3 border-t border-border text-right">
+      <div className="px-4 py-3 border-t border-border bg-muted/10 text-right">
         <p className="text-xs text-muted-foreground">
-          Click on a user to view detailed information
+          Click on a lead to view plan details
         </p>
       </div>
     </div>
