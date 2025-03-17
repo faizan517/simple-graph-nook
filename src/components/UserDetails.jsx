@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -29,8 +30,8 @@ const UserDetails = () => {
           setUser(userData);
         }
         
-        // Get detailed quotation data for this user
-        const response = await fetch(`http://localhost:5000/api/quotations/user/${id}`);
+        // Get detailed quotation data for this user using the new API endpoint format
+        const response = await fetch(`http://localhost:5000/api/quotation/user/${id}`);
         const result = await response.json();
         
         if (result.success) {
