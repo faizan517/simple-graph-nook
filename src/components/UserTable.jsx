@@ -11,9 +11,10 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from './ui/pagination';
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from './ui/table';
 
 const UserTable = () => {
-  const { getAllUsers } = useAuth();
+  const { getAllUsers, quotationLoading } = useAuth();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,18 +30,24 @@ const UserTable = () => {
   
   const navigate = useNavigate();
 
+  // Fetch users data
   useEffect(() => {
-    // Simulate data loading
-    setTimeout(() => {
-      const allUsers = getAllUsers();
-      
-      // Sort by newest first (assuming higher ID means newer)
-      const sortedUsers = [...allUsers].sort((a, b) => b.id - a.id);
-      
-      setUsers(sortedUsers);
-      setFilteredUsers(sortedUsers);
-      setIsLoading(false);
-    }, 1200);
+    const fetchUsers = async () => {
+      setIsLoading(true);
+      try {
+        const allUsers = await getAllUsers();
+        // Sort by newest first (assuming higher ID means newer)
+        const sortedUsers = [...allUsers].sort((a, b) => b.id - a.id);
+        setUsers(sortedUsers);
+        setFilteredUsers(sortedUsers);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchUsers();
   }, [getAllUsers]);
 
   // Filter users based on search
@@ -51,10 +58,9 @@ const UserTable = () => {
     } else {
       const lowercasedQuery = searchQuery.toLowerCase();
       const filtered = users.filter(user => 
-        user.name.toLowerCase().includes(lowercasedQuery) ||
-        user.email.toLowerCase().includes(lowercasedQuery) ||
-        user.role.toLowerCase().includes(lowercasedQuery) ||
-        user.department.toLowerCase().includes(lowercasedQuery)
+        (user.name && user.name.toLowerCase().includes(lowercasedQuery)) ||
+        (user.email && user.email.toLowerCase().includes(lowercasedQuery)) ||
+        (user.department && user.department.toLowerCase().includes(lowercasedQuery))
       );
       setFilteredUsers(filtered);
       setCurrentPage(1); // Reset to first page when search changes
@@ -71,6 +77,11 @@ const UserTable = () => {
 
     // Sort the users
     const sortedUsers = [...filteredUsers].sort((a, b) => {
+      // Handle null or undefined values
+      if (!a[key] && !b[key]) return 0;
+      if (!a[key]) return 1;
+      if (!b[key]) return -1;
+      
       if (a[key] < b[key]) {
         return direction === 'ascending' ? -1 : 1;
       }
@@ -125,7 +136,7 @@ const UserTable = () => {
     );
   };
 
-  if (isLoading) {
+  if (isLoading || quotationLoading) {
     return (
       <div className="min-h-[500px] flex items-center justify-center">
         <div className="flex flex-col items-center">
@@ -169,10 +180,10 @@ const UserTable = () => {
       
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border bg-muted/30">
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-b border-border bg-muted/30">
+              <TableHead>
                 <button
                   className="flex items-center focus:outline-none"
                   onClick={() => requestSort('name')}
@@ -180,8 +191,8 @@ const UserTable = () => {
                   <span>Name</span>
                   {getSortIcon('name')}
                 </button>
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              </TableHead>
+              <TableHead>
                 <button
                   className="flex items-center focus:outline-none"
                   onClick={() => requestSort('email')}
@@ -189,39 +200,39 @@ const UserTable = () => {
                   <span>Email</span>
                   {getSortIcon('email')}
                 </button>
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              </TableHead>
+              <TableHead>
                 <button
                   className="flex items-center focus:outline-none"
                   onClick={() => requestSort('department')}
                 >
-                  <span>Department</span>
+                  <span>Company</span>
                   {getSortIcon('department')}
                 </button>
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              </TableHead>
+              <TableHead>
                 <button
                   className="flex items-center focus:outline-none"
                   onClick={() => requestSort('status')}
                 >
-                  <span>Status</span>
+                  <span>Quotations</span>
                   {getSortIcon('status')}
                 </button>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-border">
             {currentUsers.length > 0 ? (
               currentUsers.map((user) => (
-                <tr 
+                <TableRow 
                   key={user.id}
                   onClick={() => handleUserClick(user.id)}
                   className="hover:bg-muted/50 cursor-pointer"
                 >
-                  <td className="px-4 py-3 text-sm">{user.name}</td>
-                  <td className="px-4 py-3 text-sm">{user.email}</td>
-                  <td className="px-4 py-3 text-sm">{user.department}</td>
-                  <td className="px-4 py-3">
+                  <TableCell className="px-4 py-3 text-sm">{user.name}</TableCell>
+                  <TableCell className="px-4 py-3 text-sm">{user.email}</TableCell>
+                  <TableCell className="px-4 py-3 text-sm">{user.department}</TableCell>
+                  <TableCell className="px-4 py-3">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       user.status === 'Active'
                         ? 'bg-green-100 text-green-800'
@@ -229,24 +240,24 @@ const UserTable = () => {
                         ? 'bg-amber-100 text-amber-800'
                         : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {user.status}
+                      {user.quotations ? user.quotations.length : 0} plans
                     </span>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             ) : (
-              <tr>
-                <td colSpan="4" className="px-4 py-10 text-center">
+              <TableRow>
+                <TableCell colSpan="4" className="px-4 py-10 text-center">
                   <div className="flex flex-col items-center">
                     <Users className="h-8 w-8 text-muted-foreground/40 mb-2" />
                     <p className="text-muted-foreground">No leads found</p>
                     <p className="text-sm text-muted-foreground mt-1">Try adjusting your search.</p>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
       
       {/* Pagination */}
