@@ -6,7 +6,7 @@ import NavBar from '../components/NavBar';
 import UserTable from '../components/UserTable';
 
 const Users = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, quotationLoading } = useAuth();
 
   // Show loading state
   if (loading) {

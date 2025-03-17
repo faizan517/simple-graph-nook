@@ -6,7 +6,7 @@ import NavBar from '../components/NavBar';
 import Dashboard from '../components/Dashboard';
 
 const DashboardPage = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, quotationLoading } = useAuth();
 
   // Show loading state
   if (loading) {

@@ -30,6 +30,8 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
+      // Fetch quotation data after user is loaded
+      fetchQuotationData();
     }
     setLoading(false);
   }, []);
@@ -46,6 +48,7 @@ export const AuthProvider = ({ children }) => {
         return result.data;
       } else {
         toast.error("Failed to fetch quotation data");
+        console.error("API error:", result);
         return null;
       }
     } catch (error) {
@@ -69,9 +72,20 @@ export const AuthProvider = ({ children }) => {
           const { password, ...userWithoutPassword } = foundUser;
           setUser(userWithoutPassword);
           localStorage.setItem('user', JSON.stringify(userWithoutPassword));
-          toast.success("Login successful");
-          resolve(userWithoutPassword);
-          navigate('/dashboard');
+          
+          // Fetch quotation data after successful login
+          fetchQuotationData()
+            .then(() => {
+              toast.success("Login successful");
+              resolve(userWithoutPassword);
+              navigate('/dashboard');
+            })
+            .catch(err => {
+              console.error("Error fetching initial data:", err);
+              toast.success("Login successful, but couldn't load initial data");
+              resolve(userWithoutPassword);
+              navigate('/dashboard');
+            });
         } else {
           toast.error("Invalid email or password");
           reject(new Error('Invalid email or password'));
@@ -83,6 +97,7 @@ export const AuthProvider = ({ children }) => {
   // Logout function
   const logout = () => {
     setUser(null);
+    setQuotationData(null);
     localStorage.removeItem('user');
     toast.info("You have been logged out");
     navigate('/login');
@@ -164,6 +179,7 @@ export const AuthProvider = ({ children }) => {
     getAllUsers,
     getUserById,
     quotationLoading,
+    fetchQuotationData,
     isAuthenticated: !!user,
   };
 

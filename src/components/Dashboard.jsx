@@ -3,9 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Users, ClipboardList, UserCheck, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { toast } from "sonner";
 
 const Dashboard = () => {
-  const { getAllUsers } = useAuth();
+  const { getAllUsers, quotationLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [leadsData, setLeadsData] = useState({
     totalLeads: 0,
@@ -15,29 +16,43 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Simulate data loading
-    setTimeout(() => {
-      const users = getAllUsers();
-      
-      // Calculate lead metrics
-      const totalLeads = users.length;
-      const activeLeads = users.filter(user => user.status === 'Active').length;
-      const recentLeads = users.filter(user => {
-        // Consider users active in last 7 days as recent
-        const lastActiveDate = new Date(user.lastActive);
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        return lastActiveDate >= sevenDaysAgo;
-      }).length;
+    async function fetchData() {
+      try {
+        setIsLoading(true);
+        const users = await getAllUsers();
+        
+        if (users && users.length > 0) {
+          // Calculate lead metrics
+          const totalLeads = users.length;
+          const activeLeads = users.filter(user => user.status === 'Active').length;
+          
+          // Consider users created in last 7 days as recent
+          const sevenDaysAgo = new Date();
+          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+          
+          const recentLeads = users.filter(user => {
+            const createdDate = new Date(user.createdAt);
+            return createdDate >= sevenDaysAgo;
+          }).length;
 
-      setLeadsData({
-        totalLeads,
-        activeLeads,
-        recentLeads
-      });
-      
-      setIsLoading(false);
-    }, 1000);
+          setLeadsData({
+            totalLeads,
+            activeLeads,
+            recentLeads
+          });
+        } else {
+          console.log("No users data available or empty array returned");
+          toast.error("Could not load dashboard data");
+        }
+      } catch (error) {
+        console.error("Error loading dashboard data:", error);
+        toast.error("Error loading dashboard data");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    fetchData();
   }, [getAllUsers]);
 
   const handleViewAllLeads = () => {
@@ -68,7 +83,7 @@ const Dashboard = () => {
       color: 'bg-purple-50 text-purple-600',
     },
     {
-      title: 'All Plans',
+      title: 'All Quotations',
       description: 'View all submitted plans',
       icon: <ClipboardList className="h-5 w-5" />,
       color: 'bg-amber-50 text-amber-600',
@@ -77,7 +92,7 @@ const Dashboard = () => {
     },
   ];
 
-  if (isLoading) {
+  if (isLoading || quotationLoading) {
     return (
       <div className="min-h-[500px] flex items-center justify-center">
         <div className="flex flex-col items-center">
@@ -118,7 +133,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Recent Leads List */}
+      {/* Recent Leads Section */}
       <div className="glass-card rounded-xl p-6 shadow-sm">
         <div className="mb-6 flex justify-between items-center">
           <div>
@@ -134,95 +149,14 @@ const Dashboard = () => {
         </div>
         
         <div className="space-y-4">
-          {/* Commented out charts for future use */}
-          {/* 
-          <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <YAxis 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--background))', 
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: 'var(--radius)',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
-                  }} 
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="users" 
-                  stroke="hsl(var(--primary))" 
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 6, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--background))', strokeWidth: 2 }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="sessions" 
-                  stroke="#8884d8" 
-                  strokeWidth={2.5} 
-                  dot={false}
-                  activeDot={{ r: 6, fill: '#8884d8', stroke: 'hsl(var(--background))', strokeWidth: 2 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          */}
-
-          {/* 
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <YAxis 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))' }}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--background))', 
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: 'var(--radius)',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
-                  }} 
-                  formatter={(value) => [`$${value}`, 'Revenue']}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="#10b981" 
-                  strokeWidth={2}
-                  fill="url(#colorRevenue)" 
-                  activeDot={{ r: 6, fill: '#10b981', stroke: 'hsl(var(--background))', strokeWidth: 2 }}
-                />
-                <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-          */}
+          {leadsData.totalLeads > 0 ? (
+            <p className="text-center py-4">
+              You have <span className="font-bold">{leadsData.totalLeads}</span> leads in total.
+              Visit the <button onClick={handleViewAllLeads} className="text-primary font-medium">Leads page</button> to see details.
+            </p>
+          ) : (
+            <p className="text-center py-4 text-muted-foreground">No lead data available yet</p>
+          )}
         </div>
       </div>
     </div>
