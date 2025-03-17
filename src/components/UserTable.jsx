@@ -2,7 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Search, ChevronDown, Users } from 'lucide-react';
+import { Search, ChevronDown, Users, UserPlus } from 'lucide-react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from './ui/pagination';
 
 const UserTable = () => {
   const { getAllUsers } = useAuth();
@@ -11,9 +19,13 @@ const UserTable = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState({
-    key: 'name',
-    direction: 'ascending'
+    key: 'id',
+    direction: 'descending'
   });
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [usersPerPage] = useState(10);
   
   const navigate = useNavigate();
 
@@ -21,8 +33,12 @@ const UserTable = () => {
     // Simulate data loading
     setTimeout(() => {
       const allUsers = getAllUsers();
-      setUsers(allUsers);
-      setFilteredUsers(allUsers);
+      
+      // Sort by newest first (assuming higher ID means newer)
+      const sortedUsers = [...allUsers].sort((a, b) => b.id - a.id);
+      
+      setUsers(sortedUsers);
+      setFilteredUsers(sortedUsers);
       setIsLoading(false);
     }, 1200);
   }, [getAllUsers]);
@@ -31,6 +47,7 @@ const UserTable = () => {
   useEffect(() => {
     if (searchQuery.trim() === '') {
       setFilteredUsers(users);
+      setCurrentPage(1); // Reset to first page when search is cleared
     } else {
       const lowercasedQuery = searchQuery.toLowerCase();
       const filtered = users.filter(user => 
@@ -40,6 +57,7 @@ const UserTable = () => {
         user.department.toLowerCase().includes(lowercasedQuery)
       );
       setFilteredUsers(filtered);
+      setCurrentPage(1); // Reset to first page when search changes
     }
   }, [searchQuery, users]);
 
@@ -65,9 +83,34 @@ const UserTable = () => {
     setFilteredUsers(sortedUsers);
   };
 
+  // Get current users for pagination
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+  
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+
   // Handle user row click
   const handleUserClick = (id) => {
     navigate(`/users/${id}`);
+  };
+
+  // Handle page change
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  
+  // Next page
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+  
+  // Previous page
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
   };
 
   // Get sort icon
@@ -98,9 +141,15 @@ const UserTable = () => {
       {/* Header with search */}
       <div className="p-4 border-b border-border bg-muted/30">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
+          <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold">Leads</h2>
-            <p className="text-muted-foreground text-sm">{filteredUsers.length} total leads</p>
+            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+              {filteredUsers.length} total
+            </div>
+            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              <UserPlus className="h-3 w-3 mr-1" />
+              New leads on top
+            </div>
           </div>
           
           <div className="relative w-full md:w-64">
@@ -162,8 +211,8 @@ const UserTable = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
+            {currentUsers.length > 0 ? (
+              currentUsers.map((user) => (
                 <tr 
                   key={user.id}
                   onClick={() => handleUserClick(user.id)}
@@ -200,12 +249,73 @@ const UserTable = () => {
         </table>
       </div>
       
-      {/* Footer */}
-      <div className="px-4 py-3 border-t border-border bg-muted/10 text-right">
-        <p className="text-xs text-muted-foreground">
-          Click on a lead to view plan details
-        </p>
-      </div>
+      {/* Pagination */}
+      {filteredUsers.length > 0 && (
+        <div className="p-4 border-t border-border bg-muted/10 flex flex-col sm:flex-row justify-between items-center gap-3">
+          <p className="text-xs text-muted-foreground">
+            Showing <span className="font-medium">{indexOfFirstUser + 1}</span> to{" "}
+            <span className="font-medium">
+              {indexOfLastUser > filteredUsers.length ? filteredUsers.length : indexOfLastUser}
+            </span>{" "}
+            of <span className="font-medium">{filteredUsers.length}</span> leads
+          </p>
+          
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={prevPage} 
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: totalPages }, (_, i) => {
+                // Only show 5 page numbers at most
+                if (
+                  totalPages <= 5 ||
+                  i === 0 ||
+                  i === totalPages - 1 ||
+                  (i >= currentPage - 2 && i <= currentPage)
+                ) {
+                  return (
+                    <PaginationItem key={i + 1}>
+                      <PaginationLink
+                        onClick={() => paginate(i + 1)}
+                        isActive={currentPage === i + 1}
+                      >
+                        {i + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+                // Show ellipsis for gaps
+                if (i === 1 && currentPage > 3) {
+                  return (
+                    <PaginationItem key="ellipsis-start">
+                      <span className="flex h-9 w-9 items-center justify-center">...</span>
+                    </PaginationItem>
+                  );
+                }
+                if (i === totalPages - 2 && currentPage < totalPages - 2) {
+                  return (
+                    <PaginationItem key="ellipsis-end">
+                      <span className="flex h-9 w-9 items-center justify-center">...</span>
+                    </PaginationItem>
+                  );
+                }
+                return null;
+              })}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={nextPage} 
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 };
