@@ -329,16 +329,143 @@ const UserDetails = () => {
           </>
         ) : selectedQuotation && selectedQuotation.quotation_details.status === 'draft' ? (
           <div className="border border-border rounded-lg p-4 bg-white shadow-sm">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mb-4">
               <AlertCircle className="h-5 w-5 text-amber-500" />
-              <h2 className="text-lg font-medium">Draft Quotation</h2>
+              <h2 className="text-lg font-medium">Draft Quotation Details</h2>
             </div>
-            <p className="mt-2">This quotation is still in draft mode and doesn't have complete details yet.</p>
-            <div className="mt-4 p-3 bg-muted/30 rounded-md">
-              <p className="text-sm text-muted-foreground">Quotation #{selectedQuotation.quotation_details.id}</p>
-              <p className="text-sm text-muted-foreground">Created on {formatDate(selectedQuotation.quotation_details.created_at)}</p>
-              <p className="text-sm text-muted-foreground">Maternity included: {selectedQuotation.quotation_details.include_maternity === 1 ? 'Yes' : 'No'}</p>
+            
+            {/* Basic Quotation Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-muted/30 rounded-md">
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Quotation ID</p>
+                <p className="font-medium">#{selectedQuotation.quotation_details.id}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Created On</p>
+                <p className="font-medium">{formatDate(selectedQuotation.quotation_details.created_at)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Status</p>
+                <p className="font-medium capitalize">{selectedQuotation.quotation_details.status}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Includes Maternity</p>
+                <p className="font-medium">{selectedQuotation.quotation_details.include_maternity === 1 ? 'Yes' : 'No'}</p>
+              </div>
             </div>
+            
+            {/* HR Plans */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <FileText className="h-5 w-5 text-primary" />
+                <h2 className="text-base font-medium">Hospitalization & Related Plans</h2>
+              </div>
+              
+              {Object.keys(selectedQuotation.hr_plans).length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-muted/50">
+                        <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Plan</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Lives</th>
+                        <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Premium</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {Object.entries(selectedQuotation.hr_plans).map(([planName, plan]) => (
+                        <tr key={planName} className="hover:bg-muted/10">
+                          <td className="px-3 py-2 text-sm">{planName}</td>
+                          <td className="px-3 py-2 text-sm">{plan.total_lives || 'N/A'}</td>
+                          <td className="px-3 py-2 text-sm font-medium">{formatCurrency(plan.total_premium || 0)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">No hospitalization plans added yet</p>
+              )}
+            </div>
+            
+            {/* Maternity Plans - only show if maternity is included */}
+            {selectedQuotation.quotation_details.include_maternity === 1 && (
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="h-5 w-5 text-primary" />
+                  <h2 className="text-base font-medium">Maternity Plans</h2>
+                </div>
+                
+                {Object.keys(selectedQuotation.maternity_plans).length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-muted/50">
+                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Plan</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Spouses</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground">Premium</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {Object.entries(selectedQuotation.maternity_plans).map(([planName, plan]) => (
+                          <tr key={planName} className="hover:bg-muted/10">
+                            <td className="px-3 py-2 text-sm">{planName}</td>
+                            <td className="px-3 py-2 text-sm">{plan.total_spouses || 'N/A'}</td>
+                            <td className="px-3 py-2 text-sm font-medium">{formatCurrency(plan.total_premium || 0)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">No maternity plans added yet</p>
+                )}
+              </div>
+            )}
+            
+            {/* Calculations Summary */}
+            <div className="mt-4 p-4 bg-muted/20 rounded-md">
+              <h3 className="text-sm font-medium mb-3">Calculation Summary</h3>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">HR Total Lives:</span>
+                  <span>{selectedQuotation.calculations.hr_total_lives || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">HR Total Premium:</span>
+                  <span>{formatCurrency(selectedQuotation.calculations.hr_total_premium)}</span>
+                </div>
+                
+                {selectedQuotation.quotation_details.include_maternity === 1 && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Maternity Total Lives:</span>
+                      <span>{selectedQuotation.calculations.maternity_total_lives || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Maternity Total Premium:</span>
+                      <span>{formatCurrency(selectedQuotation.calculations.maternity_total_premium)}</span>
+                    </div>
+                  </>
+                )}
+                
+                {selectedQuotation.calculations.waiver_percentage && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Waiver Applied:</span>
+                    <span>{selectedQuotation.calculations.waiver_percentage}%</span>
+                  </div>
+                )}
+                
+                <div className="flex justify-between pt-2 border-t border-border mt-2 font-medium">
+                  <span>Total Premium:</span>
+                  <span className="text-primary">{formatCurrency(selectedQuotation.calculations.total_premium)}</span>
+                </div>
+              </div>
+            </div>
+            
+            <p className="mt-4 text-xs text-muted-foreground">
+              This quotation is in draft status and may be incomplete. Only submitted quotations are final.
+            </p>
           </div>
         ) : (
           <div className="border border-border rounded-lg p-4 bg-white shadow-sm">
